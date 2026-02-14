@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClickGG | Sklep</title>
+    <link rel="icon" href="main.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Dodatkowe style dla poprawnego działania modala, których brakowało w CSS */
         .custom-modal {
             position: fixed;
             top: 0;
@@ -17,10 +17,10 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
-            display: none; /* Ukryty na start */
+            display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000; /* Musi być wyżej niż koszyk */
+            z-index: 2000;
         }
 
         .modal-box {
@@ -43,6 +43,22 @@
         .modal-box p {
             color: #94a3b8;
             margin-bottom: 25px;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card-anim {
+            opacity: 0;
+            animation: cardAppear 0.5s ease-out forwards;
         }
     </style>
 </head>
@@ -79,7 +95,7 @@
                 <i data-lucide="shopping-cart"></i>
                 <div class="cart-count" id="cartCount">0</div>
             </div>
-            <button class="steam-login-btn">
+            <button class="steam-login-btn" onclick="loginSteam()">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam">
                 <span>Zaloguj przez Steam</span>
             </button>
@@ -113,9 +129,7 @@
         <div class="modal-box">
             <h2>Informacje o zakupie</h2>
             <p>Aby dokonać zakupu, dołącz do naszego serwera Discord i stwórz ticketa w kategorii <strong>"zakup"</strong>.</p>
-            
             <a href="https://discord.gg/clickgg" class="discord-btn-argb">DOŁĄCZ DO DISCORDA</a>
-            
             <button onclick="closeModal()" class="close-modal-btn">Zamknij</button>
         </div>
     </div>
@@ -165,28 +179,39 @@
             grid.innerHTML = '';
             const filtered = filter === 'all' ? products : products.filter(p => p.cat === filter);
 
-            filtered.forEach(p => {
+            filtered.forEach((p, index) => {
                 const imgTag = p.img ? `<img src="${p.img}" class="card-image" alt="${p.name}">` : '';
-                grid.innerHTML += `
-                    <div class="product-card">
-                        <div>
-                            <div class="card-tag">${p.tag}</div>
-                            ${imgTag}
-                            <h3>${p.name}</h3>
-                        </div>
-                        <div>
-                            <div class="price">${p.price.toFixed(2).replace('.', ',')} <span>PLN</span></div>
-                            <button class="buy-now" onclick="addToCart(${p.id}, event)">DODAJ DO KOSZYKA</button>
-                        </div>
+                const card = document.createElement('div');
+                card.className = 'product-card product-card-anim';
+                card.style.animationDelay = `${index * 0.05}s`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="card-tag">${p.tag}</div>
+                        ${imgTag}
+                        <h3>${p.name}</h3>
+                    </div>
+                    <div>
+                        <div class="price">${p.price.toFixed(2).replace('.', ',')} <span>PLN</span></div>
+                        <button class="buy-now" onclick="addToCart(${p.id}, event)">DODAJ DO KOSZYKA</button>
                     </div>
                 `;
+                grid.appendChild(card);
             });
         }
 
         function filterShop(cat, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            btn.classList.add('tab-click-anim');
+            setTimeout(() => {
+                btn.classList.remove('tab-click-anim');
+            }, 400);
             renderProducts(cat);
+        }
+
+        function loginSteam() {
+            window.location.href = "/auth/steam";
         }
 
         function toggleCart() {
@@ -209,14 +234,13 @@
             }, 1000);
         }
 
-        // FUNKCJA OTWIERAJĄCA MODAL Z KASY
         function openCheckout() {
             if (cart.length === 0) {
                 alert("Twój koszyk jest pusty!");
                 return;
             }
             document.getElementById('checkoutModal').style.display = 'flex';
-            document.getElementById('cartSidebar').classList.remove('open'); // Zamyka boczny pasek
+            document.getElementById('cartSidebar').classList.remove('open');
         }
 
         function closeModal() {
