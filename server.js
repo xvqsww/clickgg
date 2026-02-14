@@ -15,9 +15,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new SteamStrategy({
-    returnURL: "https://xvqsww.github.io/auth/steam/return",
-    realm: "https://xvqsww.github.io/clickgg/",
-    apiKey: "1E7AA50CE37228340F02E542F74D4CC1"
+    returnURL: "https://clickgg.onrender.com/auth/steam/return",
+    realm: "https://clickgg.onrender.com/",
+    apiKey: process.env.STEAM_API_KEY 
   },
   (identifier, profile, done) => {
     return done(null, profile);
@@ -38,4 +38,5 @@ app.get("/auth/steam/return",
   }
 );
 app.use(express.static("public"));
+
 app.listen(3000);
